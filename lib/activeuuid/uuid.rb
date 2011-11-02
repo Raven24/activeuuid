@@ -49,6 +49,14 @@ module ActiveUUID
     extend ActiveSupport::Concern
 
     included do
+
+      # do this to avoid weird errors with SQLite
+      ActiveRecord::ConnectionAdapters::SQLiteColumn.instance_eval do
+        def binary_to_string(value)
+          value
+        end
+      end
+
       before_create :generate_uuid_if_needed
 
       set_primary_key "id"
