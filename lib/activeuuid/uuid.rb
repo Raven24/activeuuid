@@ -18,8 +18,15 @@ end
 
 module Arel
   module Visitors
-    class MySQL < Arel::Visitors::ToSql
+    class MySql < Arel::Visitors::ToSql
       def visit_UUIDTools_UUID(o)
+        o.quoted_id
+      end
+    end
+    class SQLite < Arel::Visitors::ToSql
+      def visit_UUIDTools_UUID(o)
+        #require 'ruby-debug'
+        #debugger
         o.quoted_id
       end
     end
@@ -56,7 +63,7 @@ module ActiveUUID
 
       set_primary_key "id"
       serialize :id, ActiveUUID::UUIDSerializer.new
-      
+
       def generate_uuid_if_needed
         generate_uuid unless self.id
       end
