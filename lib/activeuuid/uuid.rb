@@ -5,7 +5,7 @@ module UUIDTools
       s = raw.unpack("H*")[0]
       "x'#{s}'"
     end
-
+    
     def as_json(options = nil)
       hexdigest.upcase
     end
@@ -31,8 +31,6 @@ module Arel
     end
     class SQLite < Arel::Visitors::ToSql
       def visit_UUIDTools_UUID(o)
-        #require 'ruby-debug'
-        #debugger
         o.quoted_id
       end
     end
@@ -61,7 +59,11 @@ module ActiveUUID
       # do this to avoid weird errors with SQLite
       ActiveRecord::ConnectionAdapters::SQLiteColumn.instance_eval do
         def binary_to_string(value)
-          value
+          if( value.class == UUIDTools::UUID )
+            value.quoted_id
+          else
+            value
+          end
         end
       end
 
