@@ -20,6 +20,22 @@ module UUIDTools
   end
 end
 
+
+class Hash
+  # recursive iteration that executes a block
+  def self.iter(hash, b)
+    hash.inject({}) do |h, (k, v)|
+      case v
+      when Hash
+        h[k] = Hash.iter v, b
+      else
+        h[k] = b.call( k, v )
+      end
+      h
+    end
+  end
+end
+
 module Arel
   module Visitors
 
@@ -113,6 +129,18 @@ module ActiveUUID
     end
 
     module InstanceMethods
+      def update_attributes(attributes)
+        serializr = ActiveUUID::UUIDSerializer.new
+        attributes = Hash.iter attributes, lambda { |key, elem|
+          if key.to_s.eql?("id")
+            serializr.load(elem)
+          else
+            elem
+          end
+        }        
+        self.attributes = attributes
+        save
+      end
     end
  
   end
