@@ -13,6 +13,10 @@ module UUIDTools
     def to_param
       hexdigest.upcase
     end
+
+    def gsub(*args)
+      self
+    end
   end
 end
 
@@ -43,11 +47,18 @@ module ActiveUUID
       case binary
         when UUIDTools::UUID then binary
         when nil then nil
-        else UUIDTools::UUID.parse_raw(binary)
+        else
+          if( binary.class == String && binary.include?("-") )
+            UUIDTools::UUID.parse(binary)
+          else
+            UUIDTools::UUID.parse_raw(binary)
+          end
       end
     end
     def dump(uuid)
-      uuid ? uuid.raw : nil
+      nil unless uuid.nil?
+      UUIDTools::UUID.parse(uuid) if( uuid == String )
+      uuid.raw if( uuid.class == UUIDTools::UUID )
     end
   end
 
@@ -55,26 +66,15 @@ module ActiveUUID
     extend ActiveSupport::Concern
 
     included do
+      
+      after_initialize :generate_uuid_if_needed
 
-      # do this to avoid weird errors with SQLite
-      ActiveRecord::ConnectionAdapters::SQLiteColumn.instance_eval do
-        def binary_to_string(value)
-          if( value.class == UUIDTools::UUID )
-            value.quoted_id
-          else
-            value
-          end
-        end
-      end
-
-      before_create :generate_uuid_if_needed
-
-      set_primary_key "id"
+      set_primary_key :id
       serialize :id, ActiveUUID::UUIDSerializer.new
 
       def generate_uuid_if_needed
-        generate_uuid unless self.id
-      end
+        generate_uuid if self.id.blank?
+      end      
 
       def to_param
         id.to_param
