@@ -38,7 +38,6 @@ end
 
 module Arel
   module Visitors
-
     class DepthFirst < Arel::Visitors::Visitor
       def visit_UUIDTools_UUID(o)
         o.quoted_id
@@ -82,7 +81,6 @@ module ActiveUUID
     extend ActiveSupport::Concern
 
     included do
-      
       after_initialize :generate_uuid_if_needed
 
       set_primary_key :id
